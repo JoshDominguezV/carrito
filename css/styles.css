@@ -70,3 +70,15 @@ body { background: #f6f7fb; }
         margin: 0.5rem;
     }
 }
+
+/* Botón de descarga PDF */
+.btn-download-pdf {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-download-pdf:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}

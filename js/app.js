@@ -1,4 +1,4 @@
-// app.js - carrito funcional con POO, modales Bootstrap y visualización de PDF
+// app.js - carrito funcional con POO, modales Bootstrap y compatibilidad con GitHub Pages
 
 // Formateador de moneda
 const fmt = new Intl.NumberFormat("es-SV", { style: "currency", currency: "USD" });
@@ -35,8 +35,8 @@ class Cart {
     subtotal(){ return this.items.reduce((s,i)=>s+i.subtotal,0); }
 }
 
-// Función para generar y visualizar PDF de la factura
-function generarPDFFactura(nombre, dui, purchasedItems, subtotal, tax, total, accion = 'visualizar') {
+// Función para generar PDF de la factura 
+function generarPDFFactura(nombre, dui, purchasedItems, subtotal, tax, total) {
     // Usar jsPDF
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
@@ -95,7 +95,7 @@ function generarPDFFactura(nombre, dui, purchasedItems, subtotal, tax, total, ac
         body: tableRows,
         theme: 'grid',
         styles: { fontSize: 9 },
-        headStyles: { fillColor: [13, 110, 253] } // Color azul de Bootstrap
+        headStyles: { fillColor: [13, 110, 253] }
     });
     
     // Obtener la posición final después de la tabla
@@ -123,31 +123,54 @@ function generarPDFFactura(nombre, dui, purchasedItems, subtotal, tax, total, ac
     finalY += 5;
     doc.text("Tienda Supernova - El Salvador", pageWidth / 2, finalY, { align: 'center' });
     
-    // Decidir qué hacer con el PDF según el parámetro 'accion'
-    if (accion === 'descargar') {
-        // Descargar el PDF
-        doc.save(`factura-supernova-${new Date().getTime()}.pdf`);
-    } else {
-        // Visualizar el PDF en una nueva pestaña
-        const pdfBlob = doc.output('blob');
-        const pdfUrl = URL.createObjectURL(pdfBlob);
-        window.open(pdfUrl, '_blank');
-        
-        // Limpiar el URL después de un tiempo
-        setTimeout(() => {
-            URL.revokeObjectURL(pdfUrl);
-        }, 1000);
-    }
+    // Descargar el PDF 
+    doc.save(`factura-supernova-${new Date().getTime()}.pdf`);
+}
+
+// Función para mostrar factura como HTML (para GitHub Pages)
+function mostrarFacturaHTML(nombre, dui, purchasedItems, subtotal, tax, total) {
+    const fac = document.getElementById("facContent");
+    fac.innerHTML = `
+        <div class="invoice-header">
+            <h5 class="mb-1">Factura #${uid()}</h5>
+            <p class="mb-0">Fecha: ${new Date().toLocaleString("es-SV")}</p>
+        </div>
+        <div class="invoice-details">
+            <p class="mb-1"><strong>Cliente:</strong> ${nombre}</p>
+            <p class="mb-0"><strong>DUI:</strong> ${dui}</p>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead><tr><th>Producto</th><th>Cant.</th><th>P.Unit</th><th>Total</th></tr></thead>
+                <tbody>
+                    ${purchasedItems.map(i => `
+                        <tr>
+                            <td>${i.product.name}</td>
+                            <td>${i.qty}</td>
+                            <td>${fmt.format(i.product.price)}</td>
+                            <td>${fmt.format(i.subtotal)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        <div class="invoice-totals">
+            <div class="d-flex justify-content-between"><span>Subtotal:</span><strong>${fmt.format(subtotal)}</strong></div>
+            <div class="d-flex justify-content-between"><span>Impuesto:</span><strong>${fmt.format(tax)}</strong></div>
+            <div class="d-flex justify-content-between fs-5 mt-2"><span>TOTAL:</span><strong>${fmt.format(total)}</strong></div>
+        </div>
+    `;
 }
 
 // Variables paginación
 let currentPage = 1;
 const itemsPerPage = 15;
+let cart; // Variable global para el carrito
 
 // Inicialización
 document.addEventListener("DOMContentLoaded",async()=>{
     const products = await fetch("productos.json").then(r=>r.json()).catch(()=>[]);
-    const cart = new Cart();
+    cart = new Cart();
 
     const productGrid = document.getElementById("productGrid");
     const cartBody = document.getElementById("cartTableBody");
@@ -266,32 +289,13 @@ document.addEventListener("DOMContentLoaded",async()=>{
 
         purchasedItems.forEach(i=>{ const prod=products.find(p=>p.id===i.product.id); if(prod) prod.stock-=i.qty; });
 
-        // Generar y VISUALIZAR PDF 
-        generarPDFFactura(nombre, dui, purchasedItems, subtotal, tax, total, 'visualizar');
+        // Mostrar factura como HTML (compatible con GitHub Pages)
+        mostrarFacturaHTML(nombre, dui, purchasedItems, subtotal, tax, total);
         
-        // Luego limpiar el carrito y mostrar la factura en pantalla
+        // Limpiar el carrito
         cart.clear(); 
         renderCart(); 
         renderProducts();
-
-        const fac = document.getElementById("facContent");
-        fac.innerHTML=`<div class="invoice-header">
-            <h5 class="mb-1">Factura #${uid()}</h5>
-            <p class="mb-0">Fecha: ${new Date().toLocaleString("es-SV")}</p>
-        </div>
-        <div class="invoice-details">
-            <p class="mb-1"><strong>Cliente:</strong> ${nombre}</p>
-            <p class="mb-0"><strong>DUI:</strong> ${dui}</p>
-        </div>
-        <table class="table table-sm">
-            <thead><tr><th>Producto</th><th>Cant.</th><th>P.Unit</th><th>Total</th></tr></thead>
-            <tbody>${purchasedItems.map(i=>`<tr><td>${i.product.name}</td><td>${i.qty}</td><td>${fmt.format(i.product.price)}</td><td>${fmt.format(i.subtotal)}</td></tr>`).join("")}</tbody>
-        </table>
-        <div class="invoice-totals">
-            <div class="d-flex justify-content-between"><span>Subtotal:</span><strong>${fmt.format(subtotal)}</strong></div>
-            <div class="d-flex justify-content-between"><span>Impuesto:</span><strong>${fmt.format(tax)}</strong></div>
-            <div class="d-flex justify-content-between fs-5 mt-2"><span>TOTAL:</span><strong>${fmt.format(total)}</strong></div>
-        </div>`;
 
         new bootstrap.Modal(document.getElementById("invoiceModal")).show();
         bootstrap.Modal.getInstance(document.getElementById("clientModal")).hide();
@@ -307,9 +311,8 @@ document.addEventListener("DOMContentLoaded",async()=>{
         const tax = +(subtotal * taxRate).toFixed(2);
         const total = subtotal + tax;
         
-        // Descargar el PDF 
-        
-        generarPDFFactura(nombre, dui, purchasedItems, subtotal, tax, total, 'descargar');
+        // Descargar el PDF
+        generarPDFFactura(nombre, dui, purchasedItems, subtotal, tax, total);
     });
 
     // Cliente por defecto
