@@ -1,4 +1,4 @@
-// app.js - carrito funcional con POO y modales Bootstrap
+// app.js - carrito funcional con POO, modales Bootstrap y visualización de PDF
 
 // Formateador de moneda
 const fmt = new Intl.NumberFormat("es-SV", { style: "currency", currency: "USD" });
@@ -35,6 +35,111 @@ class Cart {
     subtotal(){ return this.items.reduce((s,i)=>s+i.subtotal,0); }
 }
 
+// Función para generar y visualizar PDF de la factura
+function generarPDFFactura(nombre, dui, purchasedItems, subtotal, tax, total, accion = 'visualizar') {
+    // Usar jsPDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Configuración
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 14;
+    let yPosition = margin;
+    
+    // Logo y encabezado
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text("TIENDA SUPERNOVA", pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 8;
+    
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'normal');
+    doc.text("Factura de Venta", pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 10;
+    
+    // Información de la factura
+    doc.setFontSize(10);
+    doc.text(`No. Factura: ${uid()}`, margin, yPosition);
+    doc.text(`Fecha: ${new Date().toLocaleDateString('es-SV')}`, pageWidth - margin, yPosition, { align: 'right' });
+    yPosition += 6;
+    
+    doc.text(`Cliente: ${nombre}`, margin, yPosition);
+    yPosition += 6;
+    
+    doc.text(`DUI: ${dui}`, margin, yPosition);
+    yPosition += 12;
+    
+    // Tabla de productos
+    doc.setFont(undefined, 'bold');
+    doc.text("Productos", margin, yPosition);
+    yPosition += 6;
+    
+    // Configurar la tabla
+    const tableColumn = ["Producto", "Cant.", "P. Unitario", "Total"];
+    const tableRows = [];
+    
+    purchasedItems.forEach(item => {
+        const productData = [
+            item.product.name,
+            item.qty,
+            fmt.format(item.product.price),
+            fmt.format(item.subtotal)
+        ];
+        tableRows.push(productData);
+    });
+    
+    // Generar la tabla
+    doc.autoTable({
+        startY: yPosition,
+        head: [tableColumn],
+        body: tableRows,
+        theme: 'grid',
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [13, 110, 253] } // Color azul de Bootstrap
+    });
+    
+    // Obtener la posición final después de la tabla
+    let finalY = doc.lastAutoTable.finalY + 10;
+    
+    // Totales
+    doc.setFont(undefined, 'bold');
+    doc.text("Subtotal:", pageWidth - 60, finalY);
+    doc.text(fmt.format(subtotal), pageWidth - margin, finalY, { align: 'right' });
+    finalY += 7;
+    
+    doc.text("Impuesto:", pageWidth - 60, finalY);
+    doc.text(fmt.format(tax), pageWidth - margin, finalY, { align: 'right' });
+    finalY += 7;
+    
+    doc.setFontSize(12);
+    doc.text("TOTAL:", pageWidth - 60, finalY);
+    doc.text(fmt.format(total), pageWidth - margin, finalY, { align: 'right' });
+    finalY += 15;
+    
+    // Pie de página
+    doc.setFontSize(8);
+    doc.setFont(undefined, 'italic');
+    doc.text("¡Gracias por su compra!", pageWidth / 2, finalY, { align: 'center' });
+    finalY += 5;
+    doc.text("Tienda Supernova - El Salvador", pageWidth / 2, finalY, { align: 'center' });
+    
+    // Decidir qué hacer con el PDF según el parámetro 'accion'
+    if (accion === 'descargar') {
+        // Descargar el PDF
+        doc.save(`factura-supernova-${new Date().getTime()}.pdf`);
+    } else {
+        // Visualizar el PDF en una nueva pestaña
+        const pdfBlob = doc.output('blob');
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        window.open(pdfUrl, '_blank');
+        
+        // Limpiar el URL después de un tiempo
+        setTimeout(() => {
+            URL.revokeObjectURL(pdfUrl);
+        }, 1000);
+    }
+}
+
 // Variables paginación
 let currentPage = 1;
 const itemsPerPage = 15;
@@ -61,14 +166,14 @@ document.addEventListener("DOMContentLoaded",async()=>{
 
         for(const p of pageProducts){
             const col=document.createElement("div");
-            col.className="col-12 col-md-6 col-xl-4";
+            col.className=`col-12 col-md-6 col-xl-4 ${p.stock===0 ? 'producto-agotado' : ''}`;
             const inCart = cart.items.find(i=>i.product.id===p.id);
 
             col.innerHTML=`<div class="card h-100 border-0 shadow-sm">
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start">
                         <h6>${p.name}</h6>
-                        <span class="badge bg-secondary">Stock: ${p.stock}</span>
+                        <span class="badge bg-${p.stock===0 ? 'danger' : 'secondary'}">Stock: ${p.stock}</span>
                     </div>
                     <div class="mt-auto">
                         <div class="mb-2 fw-bold">${fmt.format(p.price)}</div>
@@ -161,25 +266,50 @@ document.addEventListener("DOMContentLoaded",async()=>{
 
         purchasedItems.forEach(i=>{ const prod=products.find(p=>p.id===i.product.id); if(prod) prod.stock-=i.qty; });
 
-        cart.clear(); renderCart(); renderProducts();
+        // Generar y VISUALIZAR PDF 
+        generarPDFFactura(nombre, dui, purchasedItems, subtotal, tax, total, 'visualizar');
+        
+        // Luego limpiar el carrito y mostrar la factura en pantalla
+        cart.clear(); 
+        renderCart(); 
+        renderProducts();
 
         const fac = document.getElementById("facContent");
-        fac.innerHTML=`<div class="mb-3">
-            <strong>Factura #${uid()}</strong><br>
-            Cliente: ${nombre}<br>
-            DUI: ${dui}<br>
-            Fecha: ${new Date().toLocaleString("es-SV")}
+        fac.innerHTML=`<div class="invoice-header">
+            <h5 class="mb-1">Factura #${uid()}</h5>
+            <p class="mb-0">Fecha: ${new Date().toLocaleString("es-SV")}</p>
+        </div>
+        <div class="invoice-details">
+            <p class="mb-1"><strong>Cliente:</strong> ${nombre}</p>
+            <p class="mb-0"><strong>DUI:</strong> ${dui}</p>
         </div>
         <table class="table table-sm">
             <thead><tr><th>Producto</th><th>Cant.</th><th>P.Unit</th><th>Total</th></tr></thead>
             <tbody>${purchasedItems.map(i=>`<tr><td>${i.product.name}</td><td>${i.qty}</td><td>${fmt.format(i.product.price)}</td><td>${fmt.format(i.subtotal)}</td></tr>`).join("")}</tbody>
         </table>
-        <div class="text-end fw-bold">Subtotal: ${fmt.format(subtotal)}</div>
-        <div class="text-end fw-bold">Impuesto: ${fmt.format(tax)}</div>
-        <div class="text-end fs-5">Total: ${fmt.format(total)}</div>`;
+        <div class="invoice-totals">
+            <div class="d-flex justify-content-between"><span>Subtotal:</span><strong>${fmt.format(subtotal)}</strong></div>
+            <div class="d-flex justify-content-between"><span>Impuesto:</span><strong>${fmt.format(tax)}</strong></div>
+            <div class="d-flex justify-content-between fs-5 mt-2"><span>TOTAL:</span><strong>${fmt.format(total)}</strong></div>
+        </div>`;
 
         new bootstrap.Modal(document.getElementById("invoiceModal")).show();
         bootstrap.Modal.getInstance(document.getElementById("clientModal")).hide();
+    });
+
+    // Botón para descargar PDF desde el modal de factura
+    document.getElementById("btnImprimir").addEventListener("click", () => {
+        const nombre = document.getElementById("clienteNombre").value || "Consumidor Final";
+        const dui = document.getElementById("clienteDui").value || "00000000-0";
+        const purchasedItems = cart.items.length > 0 ? [...cart.items] : [];
+        const subtotal = cart.subtotal();
+        const taxRate = parseFloat(taxSelect.value);
+        const tax = +(subtotal * taxRate).toFixed(2);
+        const total = subtotal + tax;
+        
+        // Descargar el PDF 
+        
+        generarPDFFactura(nombre, dui, purchasedItems, subtotal, tax, total, 'descargar');
     });
 
     // Cliente por defecto

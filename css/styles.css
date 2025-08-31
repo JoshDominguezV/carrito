@@ -9,3 +9,64 @@ body { background: #f6f7fb; }
 .footer{ color:#6c757d; }
 .toast-container{ z-index:1080; }
 .form-range::-webkit-slider-thumb { background: var(--brand); }
+
+/* Estilos para la factura PDF */
+.invoice-header {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.invoice-details {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.invoice-totals {
+    background: #e9f5ff;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+/* Mejoras para el modal de factura */
+#facContent {
+    font-size: 0.9rem;
+}
+
+#facContent table {
+    font-size: 0.85rem;
+}
+
+/* Estilos para productos agotados */
+.producto-agotado {
+    opacity: 0.7;
+    filter: grayscale(0.3);
+}
+
+.producto-agotado .btn {
+    cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    
+    .input-group {
+        width: 200px !important;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .modal-dialog {
+        margin: 0.5rem;
+    }
+}
