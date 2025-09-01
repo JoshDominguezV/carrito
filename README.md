@@ -1,38 +1,42 @@
- 📋 README.md
+# 🛒 Tienda Supernova - Carrito de Compras
 
+Sistema de **carrito de compras** desarrollado en **JavaScript Vanilla** con **Programación Orientada a Objetos (POO)**, usando **Bootstrap 5** para una interfaz moderna y responsive.
 
- 🛒 Tienda Supernova - Carrito de Compras
+---
 
-Sistema de carrito de compras desarrollado con JavaScript vanilla y Programación Orientada a Objetos (POO).
+## 🚀 Cómo Ejecutar la Aplicación
 
- 🚀 Cómo Ejecutar la Aplicación
+### 🔗 Opción 1: GitHub Pages (Recomendada)  
+👉 [Acceder a la App](https://joshdominguezv.github.io/carrito/)
 
- Opción 1: GitHub Pages (Recomendada)
-Acceder a: https://joshdominguezv.github.io/carrito/
+### 💻 Opción 2: Localmente  
+1. Descargar o clonar el repositorio.  
+2. Abrir `index.html` en cualquier navegador moderno.  
+3. ¡Listo! No se requiere instalación adicional.  
 
+---
 
- Opción 2: Localmente
-1. Descargar/clonar todos los archivos
-2. Abrir `index.html` en cualquier navegador moderno
-3. ¡No se requiere instalación adicional!
+## 📁 Estructura del Proyecto
 
- 📁 Estructura del Proyecto
 
 
 carrito/
-├── index.html           Interfaz principal con Bootstrap 5
-├── productos.json       Base de datos de productos (JSON)
+├── index.html        # Interfaz principal con Bootstrap 5
+├── productos.json    # Base de datos de productos
 ├── css/
-│   └── styles.css      Estilos personalizados
+│   └── styles.css    # Estilos personalizados
 └── js/
-    └── app.js          Lógica principal con clases POO
+└── app.js        # Lógica principal con clases POO
 
+`
 
- 🏗️ Arquitectura POO
+---
 
- Clases Principales Implementadas
+## 🏗️ Arquitectura POO
 
-Product - Modelo de productos:
+### 📦 Clases Principales
+
+**Product** – Modelo de productos:  
 javascript
 class Product {
     constructor(id, name, price, stock, category) {
@@ -43,9 +47,10 @@ class Product {
         this.category = category;
     }
 }
+`
 
+**CartItem** – Items del carrito:
 
-CartItem - Items del carrito:
 javascript
 class CartItem {
     constructor(product, quantity) {
@@ -58,7 +63,8 @@ class CartItem {
 }
 
 
-Cart - Gestión del carrito:
+**Cart** – Gestión del carrito:
+
 javascript
 class Cart {
     constructor() {
@@ -70,40 +76,50 @@ class Cart {
 }
 
 
- ⚡ Funcionalidades
+---
 
-- ✅ Catálogo de productos con paginación
-- ✅ Carrito persistente (localStorage)
-- ✅ Cálculos automáticos (subtotal, impuestos, total)
-- ✅ Búsqueda y filtros por nombre y precio
-- ✅ Generación de facturas PDF
-- ✅ Diseño responsive (Bootstrap 5)
-- ✅ Validación de stock en tiempo real
+## ⚡ Funcionalidades
 
- 🛠️ Tecnologías Utilizadas
+* ✅ Catálogo dinámico de productos cargado desde JSON
+* ✅ Carrito persistente en **localStorage**
+* ✅ Cálculo automático de **subtotal, impuestos y total**
+* ✅ Búsqueda y filtros por nombre y precio
+* ✅ Generación de **facturas en PDF**
+* ✅ Validación de stock en tiempo real
+* ✅ Diseño **responsive** con Bootstrap 5
 
-- HTML5 - Estructura semántica
-- CSS3 + Bootstrap 5.3 - Estilos y diseño
-- JavaScript ES6+ - Lógica con POO
-- LocalStorage - Persistencia de datos
-- jsPDF - Generación de facturas PDF
+---
 
- 🔧 Configuración
+## 🛠️ Tecnologías Utilizadas
 
- Modificar Productos
-Editar `productos.json`:
+* **HTML5** → Estructura semántica
+* **CSS3 + Bootstrap 5.3** → Estilos y diseño responsive
+* **JavaScript ES6+** → Lógica con POO
+* **LocalStorage** → Persistencia de datos
+* **jsPDF** → Generación de facturas PDF
+
+---
+
+## 🔧 Configuración
+
+### 📦 Modificar Productos
+
+Editar el archivo `productos.json`:
+
 json
 {
-    "id": 1,
-    "name": "Producto Ejemplo",
-    "price": 100.00,
-    "stock": 50,
-    "category": "Categoría"
+  "id": 1,
+  "name": "Producto Ejemplo",
+  "price": 100.00,
+  "stock": 50,
+  "category": "Categoría"
 }
 
 
- Cambiar Impuestos
+### 💰 Cambiar Impuestos
+
 En `index.html`, modificar el selector:
+
 html
 <select id="taxSelect">
     <option value="0.13">13% IVA</option>
@@ -111,11 +127,16 @@ html
 </select>
 
 
- 📞 Soporte
+---
 
-- Repositorio: https://github.com/JoshDominguezV/carrito
-- Sitio Live: https://joshdominguezv.github.io/carrito/
+## 📞 Soporte
+
+* 📂 Repositorio: [GitHub](https://github.com/JoshDominguezV/carrito)
+* 🌍 Sitio Live: [GitHub Pages](https://joshdominguezv.github.io/carrito/)
 
 ---
-Desarrollado por Josue Domínguez - 🚀 Proyecto de DPS941
+
+✍️ Desarrollado por **Josue Domínguez**
+🚀 Proyecto de **DPS941 - Universidad**
+
 
